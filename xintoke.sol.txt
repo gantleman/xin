@@ -1,0 +1,23 @@
+pragma solidity ^0.4.0;
+
+contract xintoken {
+    
+    mapping(address => string[]) public info;
+    
+     function xintoken() public {
+    }
+    
+    function setinfo(address key, string addi) public payable {
+        info[key].length += 1;
+        info[key][info[key].length-1] = addi;
+    }
+
+    function getinfo(address key) public view returns (string _ret){
+        return info[key][info[key].length-1];
+    }
+    
+    function setinfo_test() public payable {
+        info[0x1].length += 1;
+        info[0x1][info[0x1].length-1] = "a";
+    }
+}
