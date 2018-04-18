@@ -11,6 +11,8 @@ contract xintoken {
     {
         string url;
         uint price;
+        uint balance;
+        
         mapping(address => uint) buy;
         mapping(address => rate) fallow;
     }
@@ -38,18 +40,16 @@ contract xintoken {
     function buy(address car, address sell) public payable returns (string url){
         if(bytes(info[car][sell].url).length == 0)
             return '';
-            
+
         info[car][sell].buy[msg.sender] += msg.value;
-        if(msg.value != 0)
-            sell.transfer(msg.value * 5 / 10);
+        info[car][sell].balance += msg.value * 9 /10;
         
         return info[car][sell].url;
     }
 
     ///检查是否购买过维保记录
     function isbuy(address car, address buyer) public view returns (uint){
-        
-        return info[car][msg.sender].buy[buyer]/info[car][sell].price >= 1 ? 1:0;
+        return info[car][msg.sender].buy[buyer] / info[car][msg.sender].price >= 1 ? 1:0;
     }
     
     //提现接口
@@ -58,5 +58,18 @@ contract xintoken {
         return;
         
         admin.transfer(address(this).balance);
+    }
+    
+    //用户自己提现的接口
+    function selfcollect(address car) public payable{
+        if(info[car][msg.sender].balance == 0)
+            return;
+        if(address(this).balance == 0)
+            return;
+            
+        if(address(this).balance >= info[car][msg.sender].balance)
+            admin.transfer(info[car][msg.sender].balance);
+        else
+            admin.transfer(address(this).balance);
     }
 }
