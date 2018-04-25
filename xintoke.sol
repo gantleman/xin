@@ -1,8 +1,10 @@
 pragma solidity ^0.4.0;
 import './strings.sol';
 
+
 contract xintoken {
     using strings for *;
+    uint8[16] hex2char = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102];
     
     struct rate{
         uint  v_rate;//1~5
@@ -64,6 +66,34 @@ contract xintoken {
         return ret;
     }
     
+    function address2str(address x) public returns (string) {
+        string memory ret = new string(40);
+        uint retptr;
+        assembly {
+            retptr := add(ret, 32) 
+        }
+        
+        for (uint i = 0; i < 20; i++) {
+            byte b = byte(uint8(uint(x) / (2**(8*(19 - i)))));
+            uint8 hi = uint8(b) / 16;
+            uint8 lo = uint8(b) - 16 * uint8(hi);
+            
+            uint v1 = hex2char[hi];
+            uint v2 = hex2char[lo];
+            
+            assembly {
+                mstore8(retptr, v1)
+            }
+            retptr++;
+            assembly {
+                mstore8(retptr, v2)
+            }
+            retptr++;
+        }
+        return ret;
+    }
+
+
     ///添加维保记录
     function add_repair(address car, address fhash, string url, uint price, uint stamp) public payable {
         assert(bytes(info[car][fhash].url).length == 0);
@@ -74,9 +104,12 @@ contract xintoken {
         info[car][fhash].stamp = stamp;
         index[car] = index[car].toSlice().concat(uint2str(stamp).toSlice());
         index[car] = index[car].toSlice().concat(",".toSlice());
+        index[car] = index[car].toSlice().concat(address2str(msg.sender).toSlice());
+        index[car] = index[car].toSlice().concat(",".toSlice());
+        index[car] = index[car].toSlice().concat(address2str(fhash).toSlice());
+        index[car] = index[car].toSlice().concat(",".toSlice());
         index[car] = index[car].toSlice().concat(uint2str(price).toSlice());
         index[car] = index[car].toSlice().concat(";".toSlice());
-        error = 4;
     }
     
     function getaddress(address car) public view returns (string rets){
@@ -96,20 +129,18 @@ contract xintoken {
         assert(bytes(info[car][fhash].url).length != 0);
         assert(info[car][fhash].price <= coin[msg.sender]);
 
-            
-        info[car][fhash].buy[msg.sender] += info[car][fhash].price;
-        info[car][fhash].balance += info[car][fhash].price * 9 /10;
-        
-        coin[admin] += info[car][fhash].price/10;
+        info[car][fhash].buy[msg.sender] = 1;
+        info[car][fhash].balance += 1;
         coin[msg.sender] = coin[msg.sender] - info[car][fhash].price;
+        coin[info[car][fhash].seller] = coin[info[car][fhash].seller] + info[car][fhash].price;
         error = 5;
     }
 
     ///4s店检查是否购买过维保记录
     function isbuy(address car, address fhash, address buyer) public view returns (uint){
         if(info[car][fhash].seller != msg.sender)
-            return;
-        if(info[car][fhash].buy[buyer] / info[car][fhash].price >= 1)
+            return 0;
+        if(info[car][fhash].buy[buyer] == 1)
             return 1;
         else
             return 0; 
@@ -117,7 +148,7 @@ contract xintoken {
     
     ///获取url
     function geturl(address car, address fhash) public view returns (string){
-        if(info[car][fhash].buy[msg.sender] / info[car][fhash].price < 1)
+        if(info[car][fhash].buy[msg.sender] == 0)
             return '';
             
         return info[car][fhash].url; 
@@ -131,8 +162,8 @@ contract xintoken {
     
     function selfcollect(address car, address seller, uint value) public payable returns (uint){
         assert(msg.sender == admin);
-        info[car][seller].balance -= value;
-        return info[car][seller].balance;
+        coin[msg.sender] -= value;
+        return coin[msg.sender];
     }
     
     function getcoin(address seller) public view returns (uint){
@@ -142,7 +173,7 @@ contract xintoken {
         return coin[seller];
     }
     
-    function getcoin() public view returns (uint){
+    function getselfcoin() public view returns (uint){
         return coin[msg.sender];
     }
 }
