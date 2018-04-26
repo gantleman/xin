@@ -176,4 +176,11 @@ contract xintoken {
     function getselfcoin() public view returns (uint){
         return coin[msg.sender];
     }
+    
+    function transfer(address to, uint value) public payable returns (uint){
+        assert(coin[msg.sender] >= value);
+        coin[msg.sender] -= value;
+        coin[to] += value;
+        return coin[msg.sender];
+    }
 }
