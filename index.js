@@ -10,8 +10,8 @@ web3 = new Web3();
 
 var xintokenContract;
 var xintoken;
-
-web3.setProvider(new web3.providers.HttpProvider('http://192.168.56.104:8547'));
+var ethserv = 'http://192.168.56.104:8547';
+web3.setProvider(new web3.providers.HttpProvider(ethserv));
 
 var coinbase = web3.eth.coinbase;
 console.log(coinbase);
@@ -23,6 +23,14 @@ xintokenContract = web3.eth.contract([{"constant":true,"inputs":[{"name":"car","
 xintoken = xintokenContract.at("0x8c0963df4538816ac582e6b24cac417af52b79f9");
 
 console.log('web3 connecting')
+
+function isConnected(){
+	if(!web3.isConnected()){
+		web3.setProvider(new web3.providers.HttpProvider(ethserv));
+		return web3.isConnected();
+	}else
+		return 1;
+}
 
 app.get('/eth', function (req, res) {
 	res.send('Hello World');
@@ -41,9 +49,21 @@ app.get('/', function (req, res) {
 
 app.post('/eth/gasCharge',function (req, res) {
 	console.log('/eth/gasCharge');
+
+	if (isConnected()){
+		console.log('eth fail');
+		res.status(201).send('eth fail');
+		return;
+	}
+
 	addr = req.body.addr;
 
 	console.log("body:"+req.body.addr);
+
+	if (req.body.addr == 'undefined'){
+		res.status(201).send('addr fail');
+		return;
+	}
 
 	var balance = web3.fromWei(web3.eth.getBalance(addr), "ether")
 	if (balance < 1)
@@ -63,8 +83,20 @@ app.post('/eth/gasCharge',function (req, res) {
 
 app.post('/eth/coinInit', function (req, res, next) {
 	console.log('/eth/coinInit');
+
+	if (isConnected()){
+		console.log('eth fail');
+		res.status(201).send('eth fail');
+		return;
+	}
+
 	console.log("body:"+req.body.addr);
 	console.log("coinbase:"+web3.eth.coinbase);
+
+	if (req.body.addr == 'undefined'){
+		res.status(201).send('addr fail');
+		return;
+	}
 
 	db.serialize(function() {
 		db.run("CREATE TABLE IF NOT EXISTS t(a TEXT PRIMARY KEY)",
