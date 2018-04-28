@@ -160,10 +160,10 @@ contract xintoken {
         admin.transfer(address(this).balance);
     }
     
-    function selfcollect(address car, address seller, uint value) public payable returns (uint){
+    function selfcollect(address seller, uint value) public payable returns (uint){
         assert(msg.sender == admin);
-        coin[msg.sender] -= value;
-        return coin[msg.sender];
+        coin[seller] -= value;
+        return coin[seller];
     }
     
     function getcoin(address seller) public view returns (uint){

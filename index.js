@@ -110,7 +110,7 @@ app.post('/eth/coinInit', function (req, res, next) {
 						 console.log('FAIL on INSERT INTO ' + err);
 						 res.status(201).send('fail');
 					}else{
-						xintoken.addcoin.sendTransaction(req.body.addr, 1000, {from:web3.eth.coinbase});
+						xintoken.addcoin.sendTransaction(req.body.addr, 1000, {from:web3.eth.coinbase, gas:180000});
 						console.log('ok');
 						res.status(200).send('ok');
 						return;
