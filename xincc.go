@@ -35,15 +35,81 @@ func (s *XinContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
 }
 
 func (s *XinContract) regist(stub shim.ChaincodeStubInterface, args []string) {
-}
+	var key string;
+	key += "xin.acc."
+	key += args[0]
 
+	pwd, err := APIstub.GetState(args[0])
+	if err == nil {
+		return
+	}
+
+	APIstub.PutState(key, args[1])
+}
+//usr pwd address car, address fhash, string url, uint price, uint stamp
+//分别放入不同的变量内并拼接字符串
+//这里要对账户密码做校验
 func (s *XinContract) addrepair(stub shim.ChaincodeStubInterface, args []string){
+	var key string;
+	key += "xin.vin."
+	key += args[0]
+	key += "."
+	key += args[1]
+	key += "."
+
+	APIstub.PutState(key + "url", strconv.Atoi(args[2]))
+	APIstub.PutState(key + "price", strconv.Atoi(args[3]))
+	APIstub.PutState(key + "stamp", strconv.Atoi(args[4]))
+	APIstub.PutState(key + "usr", strconv.Atoi(args[5]))
+
+	var ikey string;
+	ikey += "xin.index."
+	ikey += args[0]
+
+	index, err := APIstub.GetState(ikey)
+	index += strconv.Atoi(args[4])
+	index += ","
+	index += strconv.Atoi(args[5])
+	index += ","
+	index += strconv.Atoi(args[1])
+	index += ","
+	index += strconv.Atoi(args[3])
+	index += ";"
 }
 
 func (s *XinContract) buy(stub shim.ChaincodeStubInterface, args []string) {
+
+	var key string;
+	key += "xin.vin."
+	key += args[0]
+	key += "."
+	key += args[1]
+	key += "."
+
+	bkey = key + "buy."
+	bkey += args[3]
+
+	APIstub.PutState(bkey, strconv.Itoa(1))
+
+	var ckey string;
+	ckey += "xin.coin."
+
+	sprice, err := APIstub.GetState(key + "price")
+	usr, err := APIstub.GetState(key + "usr")
+
+	ucoin, err := APIstub.GetState(ckey + usr)
+	scoin, err := APIstub.GetState(ckey + args[3])
+
+	coint := strconv.Atoi(scoin);
+	price := strconv.Atoi(sprice);
+	APIstub.PutState(key, strconv.Itoa(coin - price))
+
+	u_coint := strconv.Atoi(ucoin);
+	APIstub.PutState(key, strconv.Itoa(u_coint + price))
 }
 
 func (s *XinContract) geturl(stub shim.ChaincodeStubInterface, args []string) {
+ APIstub.GetState(args[0])
 }
 
 func main() {
