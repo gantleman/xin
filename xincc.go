@@ -1,6 +1,7 @@
 package main
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	sc "github.com/hyperledger/fabric/protos/peer"
@@ -34,22 +35,26 @@ func (s *XinContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
 	return shim.Error("Invalid Smart Contract function name.")
 }
 
-func (s *XinContract) regist(stub shim.ChaincodeStubInterface, args []string) {
+func (s *XinContract) regist(APIstub shim.ChaincodeStubInterface, args []string) {
 	var key string;
 	key += "xin.acc."
 	key += args[0]
 
-	pwd, err := APIstub.GetState(args[0])
+	_, err := APIstub.GetState(args[0])
 	if err == nil {
 		return
 	}
 
-	APIstub.PutState(key, args[1])
+	APIstub.PutState(key, []byte(args[1]))
 }
+
+func atoi (s string) (n int) {
+	n, _ = strconv.Atoi(s)
+	return
+}
+
 //usr pwd address car, address fhash, string url, uint price, uint stamp
-//分别放入不同的变量内并拼接字符串
-//这里要对账户密码做校验
-func (s *XinContract) addrepair(stub shim.ChaincodeStubInterface, args []string){
+func (s *XinContract) addrepair(APIstub shim.ChaincodeStubInterface, args []string){
 	var key string;
 	key += "xin.vin."
 	key += args[0]
@@ -57,29 +62,32 @@ func (s *XinContract) addrepair(stub shim.ChaincodeStubInterface, args []string)
 	key += args[1]
 	key += "."
 
-	APIstub.PutState(key + "url", strconv.Atoi(args[2]))
-	APIstub.PutState(key + "price", strconv.Atoi(args[3]))
-	APIstub.PutState(key + "stamp", strconv.Atoi(args[4]))
-	APIstub.PutState(key + "usr", strconv.Atoi(args[5]))
-
-	var ikey string;
+	APIstub.PutState(key + "url", []byte(args[2]))
+	APIstub.PutState(key + "price", []byte(args[3]))
+	APIstub.PutState(key + "stamp", []byte(args[4]))
+	APIstub.PutState(key + "usr", []byte(args[5]))
+	
+	var bi []byte
+	var ikey,index string;
 	ikey += "xin.index."
 	ikey += args[0]
 
-	index, err := APIstub.GetState(ikey)
-	index += strconv.Atoi(args[4])
+	bi, _ = APIstub.GetState(ikey)
+	index = string(bi)
+	index += args[4]
 	index += ","
-	index += strconv.Atoi(args[5])
+	index += args[5]
 	index += ","
-	index += strconv.Atoi(args[1])
+	index += args[1]
 	index += ","
-	index += strconv.Atoi(args[3])
+	index += args[3]
 	index += ";"
+	APIstub.PutState(ikey, []byte(index))
 }
 
-func (s *XinContract) buy(stub shim.ChaincodeStubInterface, args []string) {
+func (s *XinContract) buy(APIstub shim.ChaincodeStubInterface, args []string) {
 
-	var key string;
+	var key,bkey string;
 	key += "xin.vin."
 	key += args[0]
 	key += "."
@@ -89,27 +97,32 @@ func (s *XinContract) buy(stub shim.ChaincodeStubInterface, args []string) {
 	bkey = key + "buy."
 	bkey += args[3]
 
-	APIstub.PutState(bkey, strconv.Itoa(1))
+	APIstub.PutState(bkey, []byte(strconv.Itoa(1)))
 
 	var ckey string;
 	ckey += "xin.coin."
 
-	sprice, err := APIstub.GetState(key + "price")
-	usr, err := APIstub.GetState(key + "usr")
+	sprice, _ := APIstub.GetState(key + "price")
+	usr, _ := APIstub.GetState(key + "usr")
 
-	ucoin, err := APIstub.GetState(ckey + usr)
-	scoin, err := APIstub.GetState(ckey + args[3])
+	ucoin, _ := APIstub.GetState(ckey + string(usr))
+	scoin, _ := APIstub.GetState(ckey + args[3])
 
-	coint := strconv.Atoi(scoin);
-	price := strconv.Atoi(sprice);
-	APIstub.PutState(key, strconv.Itoa(coin - price))
+	coint := atoi(string(scoin));
+	price := atoi(string(sprice));
+	APIstub.PutState(key, []byte(strconv.Itoa(coint - price)))
 
-	u_coint := strconv.Atoi(ucoin);
-	APIstub.PutState(key, strconv.Itoa(u_coint + price))
+	u_coint,_ := strconv.Atoi(string(ucoin));
+	APIstub.PutState(key, []byte(strconv.Itoa(u_coint + price)))
 }
 
-func (s *XinContract) geturl(stub shim.ChaincodeStubInterface, args []string) {
- APIstub.GetState(args[0])
+func (s *XinContract) geturl(APIstub shim.ChaincodeStubInterface, args []string) (string){
+	var ikey string;
+	ikey += "xin.index."
+	ikey += args[0]
+
+	index, _ := APIstub.GetState(ikey)
+	return string(index)
 }
 
 func main() {
