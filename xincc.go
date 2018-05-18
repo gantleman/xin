@@ -56,14 +56,14 @@ func (s *XinContract) regist(APIstub shim.ChaincodeStubInterface, args []string)
 func (s *XinContract) check(APIstub shim.ChaincodeStubInterface, usr string, pwd string) int {
 	var key string;
 	key += "xin.acc."
-	key += args[0]
+	key += usr
 
-	rpwd, err := APIstub.GetState([]byte(usr))
+	rpwd, err := APIstub.GetState(usr)
 	if err == nil {
 		return 0
 	}
 
-	if rpwd != pwd {
+	if string(rpwd) != pwd {
 		return 0
 	}else
 	{
@@ -79,8 +79,7 @@ func atoi (s string) (n int) {
 //0usr, 1pwd, 2car, 3fhash, 4url, 5price, 6stamp
 func (s *XinContract) addrepair(APIstub shim.ChaincodeStubInterface, args []string){
 
-	if check(args[0], args[1]) == 0
-	{
+	if s.check(APIstub, args[0], args[1]) == 0 {
 		return
 	}
 
@@ -117,8 +116,7 @@ func (s *XinContract) addrepair(APIstub shim.ChaincodeStubInterface, args []stri
 //0usr, 1pwd, 2car, 3fhash
 func (s *XinContract) buy(APIstub shim.ChaincodeStubInterface, args []string) {
 
-	if check(args[0], args[1]) == 0
-	{
+	if s.check(APIstub, args[0], args[1]) == 0 {
 		return
 	}
 
@@ -146,15 +144,31 @@ func (s *XinContract) buy(APIstub shim.ChaincodeStubInterface, args []string) {
 	APIstub.PutState(key, []byte(strconv.Itoa(coint - price)))
 
 	uscoin, _ := APIstub.GetState(ckey + string(usr))
-	ucoint,_ := strconv.Atoi(string(uscoin));
-	APIstub.PutState(key, []byte(strconv.Itoa(u_coint + price)))
+	ucoint, _ := strconv.Atoi(string(uscoin));
+	APIstub.PutState(key, []byte(strconv.Itoa(ucoint + price)))
 }
 
-//0usr, 1pwd, 2car,
+//0usr, 1pwd, 2car, 3fhash
 func (s *XinContract) geturl(APIstub shim.ChaincodeStubInterface, args []string) (string){
-	if check(args[0], args[1]) == 0
-	{
-		return
+	if s.check(APIstub, args[0], args[1]) == 0 {
+		return ""
+	}
+
+	var key string;
+	key += "xin.vin."
+	key += args[2]
+	key += "."
+	key += args[3]
+	key += "."
+
+	index, _ := APIstub.GetState(key + "url")
+	return string(index)
+}
+
+//0usr, 1pwd, 2car
+func (s *XinContract) getaddress(APIstub shim.ChaincodeStubInterface, args []string) (string){
+	if s.check(APIstub, args[0], args[1]) == 0 {
+		return ""
 	}
 
 	var ikey string;
