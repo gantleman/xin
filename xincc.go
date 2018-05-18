@@ -60,10 +60,12 @@ func (s *XinContract) check(APIstub shim.ChaincodeStubInterface, usr string, pwd
 
 	rpwd, err := APIstub.GetState(usr)
 	if err == nil {
+		fmt.Printf("usr error")
 		return 0
 	}
 
 	if string(rpwd) != pwd {
+		fmt.Printf("pwd error")
 		return 0
 	}else
 	{
