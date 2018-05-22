@@ -15,6 +15,8 @@ func (s *XinContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
 	return shim.Success(nil)
 }
 
+
+
 func (s *XinContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
 
 	// Retrieve the requested Smart Contract function and arguments
@@ -31,14 +33,47 @@ func (s *XinContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
 		return  shim.Success(nil)
 	} else if function == "getaddress" {
 		s.getaddress(APIstub, args)
-		return shim.Success(nil)
+		return shim.Success([]byte(s.getaddress(APIstub, args)))
 	} else if function == "geturl" {
-		s.geturl(APIstub, args)
+		return shim.Success([]byte(s.geturl(APIstub, args)))
+	} else if function == "addcoin" {
+		s.addcoin(APIstub, args)
 		return shim.Success(nil)
+	} else if function == "getcoin" {
+		return shim.Success([]byte(s.getcoin(APIstub, args)))
 	}
 
 	return shim.Error("Invalid Smart Contract function name.")
 }
+
+//0usr, 1pwd
+func (s *XinContract) getcoin(APIstub shim.ChaincodeStubInterface, args []string) string{
+	if s.check(APIstub, args[0], args[1]) == 0 {
+		return ""
+	}
+
+	var ckey string;
+	ckey += "xin.coin."
+
+	scoin, _ := APIstub.GetState(ckey + args[0])
+	return string(scoin);
+}
+
+//0usr, 1pwd, 2value
+func (s *XinContract) addcoin(APIstub shim.ChaincodeStubInterface, args []string) {
+	if s.check(APIstub, args[0], args[1]) == 0 {
+		return
+	}
+
+	var ckey string;
+	ckey += "xin.coin."
+
+	scoin, _ := APIstub.GetState(ckey + args[0])
+	coint := atoi(string(scoin));
+	acoint := atoi(string(args[2]));
+	APIstub.PutState(ckey+args[0], []byte(strconv.Itoa(coint + acoint)))
+}
+
 ///param usr pwd
 func (s *XinContract) regist(APIstub shim.ChaincodeStubInterface, args []string) {
 	var key string;
@@ -47,6 +82,7 @@ func (s *XinContract) regist(APIstub shim.ChaincodeStubInterface, args []string)
 
 	_, err := APIstub.GetState(args[0])
 	if err == nil {
+		fmt.Printf("regist error")
 		return
 	}
 
@@ -143,11 +179,11 @@ func (s *XinContract) buy(APIstub shim.ChaincodeStubInterface, args []string) {
 	scoin, _ := APIstub.GetState(ckey + args[0])
 	coint := atoi(string(scoin));
 	price := atoi(string(sprice));
-	APIstub.PutState(key, []byte(strconv.Itoa(coint - price)))
+	APIstub.PutState(ckey+args[0], []byte(strconv.Itoa(coint - price)))
 
 	uscoin, _ := APIstub.GetState(ckey + string(usr))
 	ucoint, _ := strconv.Atoi(string(uscoin));
-	APIstub.PutState(key, []byte(strconv.Itoa(ucoint + price)))
+	APIstub.PutState(ckey + string(usr), []byte(strconv.Itoa(ucoint + price)))
 }
 
 //0usr, 1pwd, 2car, 3fhash
