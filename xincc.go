@@ -80,13 +80,15 @@ func (s *XinContract) regist(APIstub shim.ChaincodeStubInterface, args []string)
 	key += "xin.acc."
 	key += args[0]
 
-	_, err := APIstub.GetState(args[0])
-	if err == nil {
-		fmt.Printf("regist error")
+	pwd, err := APIstub.GetState(args[0])
+	if pwd != nil {
+		fmt.Printf("regist error:" + string(pwd) + ":" + err.Error())
 		return
 	}
 
 	APIstub.PutState(key, []byte(args[1]))
+
+	fmt.Printf("regist:" + string(key) + ":" + args[1] + "\n")
 }
 
 func (s *XinContract) check(APIstub shim.ChaincodeStubInterface, usr string, pwd string) int {
@@ -94,17 +96,16 @@ func (s *XinContract) check(APIstub shim.ChaincodeStubInterface, usr string, pwd
 	key += "xin.acc."
 	key += usr
 
-	rpwd, err := APIstub.GetState(usr)
-	if err == nil {
-		fmt.Printf("usr error")
+	rpwd, _ := APIstub.GetState(key)
+	if rpwd == nil {
+		fmt.Printf("usr error:" + key + "\n")
 		return 0
 	}
 
 	if string(rpwd) != pwd {
-		fmt.Printf("pwd error")
+		fmt.Printf("pwd error:" + string(rpwd) + "\n")
 		return 0
-	}else
-	{
+	} else {
 		return 1
 	}
 }
