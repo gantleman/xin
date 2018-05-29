@@ -16,17 +16,21 @@ app.post('/api/uppic', function (req, res) {
 
   sreq.pipe(res);
   sreq.on('end', function (error, res) {
-    console.log('post end ' + error);
+    if (error) {
+      console.log('post end ' + error);
+      return;
+    }
   });
 });
 
 app.get('/api/getpic', function (req, res) {
-  console.log("get+"+req.query.picurl);
-
   var sreq = request.get("http://upload.xin.com"+req.query.picurl)
   sreq.pipe(res);
   sreq.on('end', function (error, res) {
-    console.log('get end ' + error);
+    if (error) {
+      console.log('get end ' + error);
+      return;
+    }
   });
 })
 
