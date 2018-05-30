@@ -218,6 +218,27 @@ func (s *XinContract) getaddress(APIstub shim.ChaincodeStubInterface, args []str
 	return string(index)
 }
 
+//0usr, 1pwd, 2car, 3fhash
+func (s *XinContract) isbuy(APIstub shim.ChaincodeStubInterface) sc.Response {
+	function, args := APIstub.GetFunctionAndParameters()
+	if s.check(APIstub, args[0], args[1]) == 0 {
+		return
+	}
+
+	var key,bkey string;
+	key += "xin.vin."
+	key += args[2]
+	key += "."
+	key += args[3]
+	key += "."
+
+	bkey = key + "buy."
+	bkey += args[0]
+
+	is, _ := APIstub.GetState(bkey)
+	return shim.Success(is)
+}
+
 func main() {
 
 	// Create a new Xin Contract
