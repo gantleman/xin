@@ -53,7 +53,7 @@ app.post('/api/upfile', function (req, res) {
 app.get('/api/getpic', function (req, res) {
 
   const request = {
-		chaincodeId: 'xincc',
+		chaincodeId: 'UxinCar',
 		fcn: 'isbuy',
 		args: ['query,'+ req.user+','+req.pwd+','+req.car+','+req.fhash]
 	};
